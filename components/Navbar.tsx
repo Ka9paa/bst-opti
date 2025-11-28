@@ -1,6 +1,12 @@
-import image_0e2d312c00b8c2a1b7cefa2f023f8facae8be293 from 'figma:asset/0e2d312c00b8c2a1b7cefa2f023f8facae8be293.png';
+✅ FULL FIXED CODE - COPY & PASTE TO GITHUB:
+
+---
+
+1️⃣ /components/Navbar.tsx
+
+```tsx
 import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Zap } from 'lucide-react';
 
 interface NavbarProps {
   onNavigate: (page: 'home' | 'pricing' | 'login' | 'dashboard') => void;
@@ -28,7 +34,7 @@ export function Navbar({ onNavigate, onScrollToSection, isLoggedIn }: NavbarProp
           >
             <div className="w-10 h-10 relative flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg blur-lg group-hover:blur-xl transition-all"></div>
-              <img src={image_0e2d312c00b8c2a1b7cefa2f023f8facae8be293} alt="Axira" className="w-8 h-8 relative z-10" />
+              <Zap className="w-8 h-8 relative z-10 text-blue-400" />
             </div>
             <span className="text-white text-xl tracking-tight">Axira Optimizer</span>
           </button>
@@ -169,3 +175,4 @@ export function Navbar({ onNavigate, onScrollToSection, isLoggedIn }: NavbarProp
     </nav>
   );
 }
+```

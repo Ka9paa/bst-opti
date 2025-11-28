@@ -1,10 +1,3 @@
-✅ FULL FIXED CODE - COPY & PASTE TO GITHUB:
-
----
-
-1️⃣ /components/Navbar.tsx
-
-```tsx
 import { useState } from 'react';
 import { Menu, X, Zap } from 'lucide-react';
 
@@ -175,4 +168,3 @@ export function Navbar({ onNavigate, onScrollToSection, isLoggedIn }: NavbarProp
     </nav>
   );
 }
-```

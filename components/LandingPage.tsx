@@ -1,4 +1,3 @@
-import image_0e2d312c00b8c2a1b7cefa2f023f8facae8be293 from 'figma:asset/0e2d312c00b8c2a1b7cefa2f023f8facae8be293.png';
 import { Zap, Shield, TrendingUp, Gamepad2, CheckCircle, ArrowRight, Cpu, Download, Star } from 'lucide-react';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
@@ -47,7 +46,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           {/* Logo */}
           <div className="inline-flex items-center justify-center w-32 h-32 mb-8 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-cyan-500/30 rounded-2xl blur-2xl animate-pulse"></div>
-            <img src={image_0e2d312c00b8c2a1b7cefa2f023f8facae8be293} alt="Axira Logo" className="w-28 h-28 relative z-10" />
+            <Zap className="w-28 h-28 relative z-10 text-blue-400" />
           </div>
 
           {/* Main Heading */}

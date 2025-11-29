@@ -2,20 +2,19 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Terminal as TerminalIcon, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 interface OptimizationTerminalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  script: string;
   gameName: string;
-  systemType: string;
-  optimizationScript: string;
+  onClose: () => void;
 }
 
 export function OptimizationTerminal({
-  isOpen,
-  onClose,
+  script,
   gameName,
-  systemType,
-  optimizationScript
+  onClose
 }: OptimizationTerminalProps) {
+  const isOpen = true; // Always open when component is rendered
+  const systemType = 'custom'; // Default system type
+  const optimizationScript = script;
   const [output, setOutput] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);

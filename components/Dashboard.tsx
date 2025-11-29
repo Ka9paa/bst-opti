@@ -15,6 +15,7 @@ import {
   Sparkles,
   Gauge
 } from 'lucide-react';
+import { Logo } from './Logo';
 
 interface DashboardProps {
   username: string;
@@ -120,7 +121,7 @@ export default function Dashboard({ username, licenseKey, onNavigate }: Dashboar
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center">
-            <img src="/axira-logo.svg" alt="Axira" className="w-12 h-12" />
+            <Logo size="lg" className="!w-12 !h-12" />
           </div>
           <div>
             <h1 className="text-3xl">

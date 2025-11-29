@@ -11,6 +11,7 @@ import {
   LogOut,
   Shield
 } from 'lucide-react';
+import { Logo } from './Logo';
 
 interface GameSelectionProps {
   username: string;
@@ -115,7 +116,7 @@ export function GameSelection({ username, packageName, onSelectGame, onLogout, h
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                <img src="/axira-logo.svg" alt="Axira" className="w-10 h-10" />
+                <Logo size="lg" className="!w-10 !h-10" />
               </div>
               <div>
                 <h1 className="text-white text-xl">Axira Optimizer</h1>

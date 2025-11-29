@@ -75,8 +75,23 @@ export function GameSpecificOptimizer({ game, packageId, onBack }: GameSpecificO
     setOptimizationScript(script);
     setShowTerminal(true);
 
+    // Also download the script immediately
+    const blob = new Blob([script], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `OPTIAXIRA_${gameNames[game]}_Optimization.bat`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
     // Save to history
     saveToHistory();
+
+    toast.success(`${gameNames[game]} optimization script downloaded!`, {
+      description: 'Run the .bat file as Administrator to apply optimizations'
+    });
   };
 
   const saveToHistory = () => {

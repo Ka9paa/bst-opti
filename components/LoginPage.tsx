@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { User, Lock, Key, Loader2 } from 'lucide-react';
 import { keyAuthLogin, keyAuthRegister } from '../utils/keyauth';
+import { generateDeviceFingerprint, getUserIP, isDeviceAuthorized, lockUserToDevice } from '../utils/deviceFingerprint';
+import { Logo } from './Logo';
 
 interface LoginPageProps {
   onLogin: (username: string, packageId: string, packageName: string, key?: string) => void;
+  onBack?: () => void;
 }
 
-export function LoginPage({ onLogin }: LoginPageProps) {
+export function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -20,23 +23,42 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setErrorMessage('');
 
     try {
-      // TEST KEY BYPASS - Remove this in production (only for sign up now)
-      if (isSignUp && licenseKey.toLowerCase() === 'test_key') {
-        // Simulate successful registration with test key
-        setTimeout(() => {
-          alert('Account created successfully! Please login.');
-          setIsSignUp(false);
-          setPassword('');
-          setLicenseKey('');
-          setIsLoading(false);
-        }, 500);
-        return;
-      }
+      // Generate device fingerprint (HWID for web)
+      const hwid = await generateDeviceFingerprint();
+      const ip = await getUserIP();
 
       if (isSignUp) {
         // Register new user - requires license key
         const result = await keyAuthRegister(username, password, licenseKey);
         if (result.success) {
+          // Save user registration data for admin panel
+          const userData = {
+            key: licenseKey,
+            username: username,
+            password: password, // Store for admin visibility (KeyAuth still handles auth)
+            packageTier: licenseKey.split('-')[0].toUpperCase(),
+            registeredDate: new Date().toLocaleDateString(),
+            lastLogin: 'Never',
+            notes: '',
+            status: 'active' as const,
+            expiryDate: 'Unknown',
+            hwid: hwid, // Lock to this device
+            hwidLocked: true,
+            lastIP: ip,
+            loginAttempts: [],
+            totalLogins: 0
+          };
+
+          // Get existing users
+          const savedUsers = localStorage.getItem('optiaxira_users');
+          const users = savedUsers ? JSON.parse(savedUsers) : [];
+          
+          // Add new user
+          users.push(userData);
+          
+          // Save back to localStorage
+          localStorage.setItem('optiaxira_users', JSON.stringify(users));
+
           alert('Account created successfully! Please login.');
           setIsSignUp(false);
           setPassword('');
@@ -45,11 +67,122 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           setErrorMessage(result.message);
         }
       } else {
+        // Check HWID before allowing login
+        const savedUsers = localStorage.getItem('optiaxira_users');
+        if (savedUsers) {
+          const users = JSON.parse(savedUsers);
+          const existingUser = users.find((u: any) => u.username === username);
+          
+          // If user exists and has HWID lock enabled
+          if (existingUser && existingUser.hwidLocked && existingUser.hwid) {
+            if (existingUser.hwid !== hwid) {
+              // HWID MISMATCH - BLOCK LOGIN
+              const userIndex = users.findIndex((u: any) => u.username === username);
+              if (userIndex !== -1) {
+                if (!users[userIndex].loginAttempts) users[userIndex].loginAttempts = [];
+                users[userIndex].loginAttempts.push({
+                  timestamp: new Date().toLocaleString(),
+                  status: '🚫 HWID MISMATCH - BLOCKED',
+                  ip: ip,
+                  hwid: hwid.substring(0, 8) + '...',
+                  expectedHwid: existingUser.hwid.substring(0, 8) + '...'
+                });
+                localStorage.setItem('optiaxira_users', JSON.stringify(users));
+              }
+              
+              setErrorMessage(`🚫 ACCOUNT LOCKED!\n\nThis account is locked to a different device.\n\nYour HWID: ${hwid.substring(0, 12)}...\nAuthorized HWID: ${existingUser.hwid.substring(0, 12)}...\n\nContact admin to reset your HWID.`);
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+
         // Login existing user - no license key needed
         const result = await keyAuthLogin(username, password, licenseKey);
         if (result.success && result.packageType && result.packageName) {
+          // Get existing users
+          const savedUsers = localStorage.getItem('optiaxira_users');
+          const users = savedUsers ? JSON.parse(savedUsers) : [];
+
+          // Check if user already exists
+          const existingUserIndex = users.findIndex((u: any) => u.username === username);
+          
+          if (existingUserIndex !== -1) {
+            // Update existing user's last login
+            users[existingUserIndex].lastLogin = new Date().toLocaleString();
+            users[existingUserIndex].password = password; // Update password in case they changed it
+            users[existingUserIndex].packageTier = result.packageType;
+            users[existingUserIndex].expiryDate = result.expiryDate;
+            users[existingUserIndex].lastIP = ip;
+            users[existingUserIndex].totalLogins = (users[existingUserIndex].totalLogins || 0) + 1;
+            
+            // Log successful login attempt
+            if (!users[existingUserIndex].loginAttempts) users[existingUserIndex].loginAttempts = [];
+            users[existingUserIndex].loginAttempts.push({
+              timestamp: new Date().toLocaleString(),
+              status: 'Success',
+              ip: ip,
+              hwid: hwid.substring(0, 8) + '...'
+            });
+
+            // Keep only last 10 login attempts
+            if (users[existingUserIndex].loginAttempts.length > 10) {
+              users[existingUserIndex].loginAttempts = users[existingUserIndex].loginAttempts.slice(-10);
+            }
+
+            // Lock to device if not already locked
+            if (!users[existingUserIndex].hwid) {
+              users[existingUserIndex].hwid = hwid;
+              users[existingUserIndex].hwidLocked = true;
+            }
+          } else {
+            // Add new user
+            const userData = {
+              key: licenseKey || 'N/A',
+              username: username,
+              password: password, // Store for admin visibility
+              packageTier: result.packageType,
+              registeredDate: new Date().toLocaleDateString(),
+              lastLogin: new Date().toLocaleString(),
+              notes: '',
+              status: 'active' as const,
+              expiryDate: result.expiryDate,
+              hwid: hwid,
+              hwidLocked: true,
+              lastIP: ip,
+              loginAttempts: [{
+                timestamp: new Date().toLocaleString(),
+                status: 'Success',
+                ip: ip,
+                hwid: hwid.substring(0, 8) + '...'
+              }],
+              totalLogins: 1
+            };
+            users.push(userData);
+          }
+
+          // Save back to localStorage
+          localStorage.setItem('optiaxira_users', JSON.stringify(users));
+
           onLogin(username, result.packageType, result.packageName, licenseKey);
         } else {
+          // Log failed login attempt
+          const savedUsers = localStorage.getItem('optiaxira_users');
+          if (savedUsers) {
+            const users = JSON.parse(savedUsers);
+            const userIndex = users.findIndex((u: any) => u.username === username);
+            if (userIndex !== -1) {
+              if (!users[userIndex].loginAttempts) users[userIndex].loginAttempts = [];
+              users[userIndex].loginAttempts.push({
+                timestamp: new Date().toLocaleString(),
+                status: 'Failed - Wrong Password',
+                ip: ip,
+                hwid: hwid.substring(0, 8) + '...'
+              });
+              localStorage.setItem('optiaxira_users', JSON.stringify(users));
+            }
+          }
+          
           setErrorMessage(result.message);
         }
       }
@@ -62,6 +195,19 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Back Button */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="fixed top-6 left-6 z-50 px-4 py-2 bg-white/5 backdrop-blur-xl text-white rounded-full border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all duration-300 flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </button>
+      )}
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Subtle gradient overlay */}
@@ -86,7 +232,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-32 h-32 mb-6 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl blur-xl"></div>
-            <img src="/axira-logo.svg" alt="Axira Logo" className="w-24 h-24 drop-shadow-2xl relative z-10" />
+            <div className="relative z-10 w-24 h-24 flex items-center justify-center">
+              <Logo size="xl" className="!w-24 !h-24 drop-shadow-2xl" />
+            </div>
           </div>
           <h1 className="text-white text-5xl mb-3 tracking-tight">Axira Optimizer</h1>
           <p className="text-gray-400 text-sm uppercase tracking-widest">Performance Optimization Suite</p>
@@ -164,7 +312,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   />
                 </div>
                 <p className="text-gray-400 text-xs mt-2">Purchase your license key from our Discord bot</p>
-                <p className="text-cyan-400 text-xs mt-1">💡 Testing: Use "test_key"</p>
               </div>
             )}
 
@@ -197,8 +344,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </form>
 
           {errorMessage && (
-            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 text-sm text-center">{errorMessage}</p>
+            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm text-center whitespace-pre-line">{errorMessage}</p>
             </div>
           )}
 
@@ -213,6 +360,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               </button>
             </p>
           </div>
+        </div>
+
+        {/* HWID Lock Info */}
+        <div className="mt-6 bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+            <p className="text-cyan-400 text-xs">🔒 HWID Lock Protection Active</p>
+          </div>
+          <p className="text-gray-500 text-xs">
+            Your account will be locked to this device. Login from other devices will be blocked for security.
+          </p>
         </div>
 
         <p className="text-center text-gray-600 text-xs mt-6">

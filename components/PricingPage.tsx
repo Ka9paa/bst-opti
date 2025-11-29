@@ -1,142 +1,106 @@
-import { Check, Zap, Crown, Star } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface PricingPageProps {
-  onNavigate: (page: 'login') => void;
+  onGetStarted: () => void;
 }
 
-export function PricingPage({ onNavigate }: PricingPageProps) {
+export default function PricingPage({ onGetStarted }: PricingPageProps) {
   const plans = [
     {
-      name: 'CHECKUP',
-      prefix: 'CHECKUP-',
+      name: 'Checkup',
       price: '$4.99',
       period: 'one-time',
-      description: 'Perfect for trying out basic optimizations',
-      icon: Star,
-      color: 'from-green-500 to-emerald-500',
       features: [
-        'Basic Windows Optimizations',
-        '1 Game Configuration',
-        'Power Plan Optimization',
-        'Network Tweaks',
-        'Visual Effects Reduction'
-      ]
+        'Basic system analysis',
+        'Performance report',
+        'General recommendations',
+        'Discord support',
+      ],
+      popular: false,
     },
     {
-      name: 'FOUNDATION',
-      prefix: 'FOUNDATION-',
+      name: 'Foundation',
       price: '$9.99',
-      period: 'one-time',
-      description: 'Great for casual gamers looking for more',
-      icon: Zap,
-      color: 'from-blue-500 to-cyan-500',
-      popular: true,
+      period: 'month',
       features: [
-        'All CHECKUP features',
-        'Up to 4 Games',
-        'Advanced GPU Settings',
-        'Input Lag Reduction',
-        'Background Service Management',
-        'NVIDIA Control Panel Guide',
-        'Discord Support'
-      ]
+        'All Checkup features',
+        'Basic optimization scripts',
+        '5 supported games',
+        'Regular updates',
+        'Priority support',
+      ],
+      popular: false,
     },
     {
-      name: 'ELITE',
-      prefix: 'ELITE-',
+      name: 'Elite',
       price: '$19.99',
-      period: 'one-time',
-      description: 'Ultimate package for competitive gamers',
-      icon: Crown,
-      color: 'from-yellow-500 to-orange-500',
+      period: 'month',
       features: [
-        'All FOUNDATION features',
-        'All 8 Games Unlocked',
-        'Advanced System Tweaks',
-        'CPU Mitigation Disabling',
-        'Memory Compression Control',
-        'MSI Mode Configuration',
-        'Priority Discord Support',
-        'Lifetime Updates',
-        '98 Unique Optimizations'
-      ]
-    }
+        'All Foundation features',
+        'Advanced optimization scripts',
+        'All supported games',
+        'Custom tweaks',
+        'Early access to new features',
+        'VIP Discord support',
+        'HWID lock protection',
+      ],
+      popular: true,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(59, 130, 246, 0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: '80px 80px'
-        }}></div>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+    <div className="min-h-screen bg-black text-white pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-20">
-          <h1 className="text-6xl md:text-7xl mb-6">Choose Your Plan</h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            One-time payment. Lifetime access. No subscriptions.
+        <div className="text-center mb-16">
+          <h1 className="mb-6">Choose Your Plan</h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            Select the perfect optimization package for your gaming needs. Purchase through our Discord bot.
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 border transition-all duration-500 hover:scale-[1.02] ${
+              className={`relative bg-gray-900 rounded-2xl p-8 border-2 ${
                 plan.popular
-                  ? 'border-blue-500/50 shadow-lg shadow-blue-500/20'
-                  : 'border-white/10 hover:border-cyan-400/30'
+                  ? 'border-blue-500 shadow-lg shadow-blue-500/20'
+                  : 'border-gray-800'
               }`}
             >
-              {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="px-4 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full text-xs uppercase tracking-wider">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-blue-500 text-white px-4 py-1 rounded-full">
                     Most Popular
-                  </div>
+                  </span>
                 </div>
               )}
 
-              {/* Icon */}
-              <div className={`w-14 h-14 bg-gradient-to-br ${plan.color} bg-opacity-20 rounded-xl flex items-center justify-center mb-6`}>
-                <plan.icon className="w-7 h-7 text-white" />
+              <div className="text-center mb-8">
+                <h3 className="mb-4">{plan.name}</h3>
+                <div className="mb-2">
+                  <span className="text-4xl font-bold">{plan.price}</span>
+                  <span className="text-gray-400 ml-2">/ {plan.period}</span>
+                </div>
               </div>
 
-              {/* Plan Name */}
-              <h3 className="text-2xl mb-2">{plan.name}</h3>
-              <p className="text-gray-400 text-sm mb-6">{plan.description}</p>
-
-              {/* Price */}
-              <div className="mb-8">
-                <span className="text-5xl">{plan.price}</span>
-                <span className="text-gray-400 ml-2">{plan.period}</span>
-              </div>
-
-              {/* Features */}
               <ul className="space-y-4 mb-8">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
+                    <span className="text-gray-300">{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              {/* CTA Button */}
               <button
-                onClick={() => onNavigate('login')}
-                className={`w-full py-3 rounded-lg transition-all duration-300 hover:scale-[1.02] ${
+                onClick={onGetStarted}
+                className={`w-full py-3 rounded-lg transition-colors ${
                   plan.popular
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50'
-                    : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-400/30'
+                    ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                    : 'bg-gray-800 hover:bg-gray-700 text-white'
                 }`}
               >
                 Get Started
@@ -145,36 +109,44 @@ export function PricingPage({ onNavigate }: PricingPageProps) {
           ))}
         </div>
 
-        {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-4xl mb-10 text-center">Frequently Asked Questions</h2>
-          
+        {/* Discord CTA */}
+        <div className="mt-16 text-center">
+          <div className="bg-gray-900 rounded-2xl p-8 max-w-2xl mx-auto border border-gray-800">
+            <h3 className="mb-4">Purchase through Discord</h3>
+            <p className="text-gray-300 mb-6">
+              All purchases are handled through our Discord bot. Join our server to get your license key instantly.
+            </p>
+            <a
+              href="https://discord.gg/axira"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-indigo-500 hover:bg-indigo-600 text-white px-8 py-3 rounded-lg transition-colors"
+            >
+              Join Discord Server
+            </a>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="mt-20 max-w-3xl mx-auto">
+          <h2 className="text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-6">
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-              <h3 className="text-xl mb-3">How do I purchase a license?</h3>
+            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+              <h3 className="mb-3">How do license keys work?</h3>
               <p className="text-gray-400">
-                Purchase your license key through our Discord bot. Once purchased, you'll receive a key with the format {'{'}PACKAGE{'}'}-XXXXXXXX that you can use to create your account.
+                Each license key is unique and tied to your account. Keys are prefixed with the package name (ELITE-, FOUNDATION-, etc.) and are validated on login.
               </p>
             </div>
-
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-              <h3 className="text-xl mb-3">Is this safe to use?</h3>
+            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+              <h3 className="mb-3">What is HWID lock?</h3>
               <p className="text-gray-400">
-                Absolutely! Every optimization script is fully documented and transparent. We only modify Windows registry settings - no malware, no hidden code. You can review every command before running it.
+                HWID (Hardware ID) lock prevents account sharing. Your account is locked to your device, ensuring maximum security and preventing unauthorized access.
               </p>
             </div>
-
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-              <h3 className="text-xl mb-3">Can I upgrade my plan later?</h3>
+            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+              <h3 className="mb-3">Can I upgrade my plan?</h3>
               <p className="text-gray-400">
-                Yes! Contact our Discord support and we can help you upgrade to a higher tier. You'll only pay the difference.
-              </p>
-            </div>
-
-            <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-              <h3 className="text-xl mb-3">What if I need help?</h3>
-              <p className="text-gray-400">
-                All plans include Discord support. ELITE users get priority support. Join our Discord server for help, guides, and community tips.
+                Yes! Contact us on Discord and we'll help you upgrade to a higher tier package.
               </p>
             </div>
           </div>

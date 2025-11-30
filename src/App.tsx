@@ -1,76 +1,73 @@
 import { useState } from 'react';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import LandingPage from './components/LandingPage';
-import PricingPage from './components/PricingPage';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import GameSelection from './components/GameSelection';
+import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
+import { LandingPage } from './components/LandingPage';
+import { PricingPage } from './components/PricingPage';
+import { Login } from './components/Login';
+import { Dashboard } from './components/Dashboard';
+import { GameSelection } from './components/GameSelection';
 
 type Page = 'landing' | 'pricing' | 'login' | 'dashboard' | 'game-selection';
 
-export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('landing');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [licenseType, setLicenseType] = useState('');
+interface UserSession {
+  username: string;
+  licenseKey: string;
+  hwid: string;
+}
 
-  const handleLoginSuccess = (user: string, license: string) => {
-    setUsername(user);
-    setLicenseType(license);
-    setIsLoggedIn(true);
+function App() {
+  const [currentPage, setCurrentPage] = useState<Page>('landing');
+  const [user, setUser] = useState<UserSession | null>(null);
+
+  const handleLogin = (username: string, licenseKey: string) => {
+    // Mock HWID generation
+    const hwid = 'HWID-' + Math.random().toString(36).substring(7);
+    
+    setUser({
+      username,
+      licenseKey,
+      hwid
+    });
     setCurrentPage('dashboard');
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUsername('');
-    setLicenseType('');
+    setUser(null);
     setCurrentPage('landing');
   };
 
-  const handleGetStarted = () => {
-    setCurrentPage('login');
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'landing':
-        return <LandingPage onGetStarted={handleGetStarted} />;
-      case 'pricing':
-        return <PricingPage onGetStarted={handleGetStarted} />;
-      case 'login':
-        return <Login onLoginSuccess={handleLoginSuccess} />;
-      case 'dashboard':
-        return (
-          <Dashboard
-            username={username}
-            licenseType={licenseType}
-            onSelectGame={() => setCurrentPage('game-selection')}
-          />
-        );
-      case 'game-selection':
-        return (
-          <GameSelection
-            licenseType={licenseType}
-            onBack={() => setCurrentPage('dashboard')}
-          />
-        );
-      default:
-        return <LandingPage onGetStarted={handleGetStarted} />;
-    }
+  const handleNavigate = (page: Page) => {
+    setCurrentPage(page);
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-black">
       <Navbar
-        onNavigate={(page) => setCurrentPage(page as Page)}
         currentPage={currentPage}
-        isLoggedIn={isLoggedIn}
+        onNavigate={handleNavigate}
+        isLoggedIn={!!user}
         onLogout={handleLogout}
       />
-      <main className="flex-1">{renderPage()}</main>
-      {!isLoggedIn && <Footer />}
+      
+      <main className="flex-1">
+        {currentPage === 'landing' && <LandingPage onNavigate={handleNavigate} />}
+        {currentPage === 'pricing' && <PricingPage onNavigate={handleNavigate} />}
+        {currentPage === 'login' && <Login onLogin={handleLogin} />}
+        {currentPage === 'dashboard' && user && (
+          <Dashboard
+            username={user.username}
+            licenseKey={user.licenseKey}
+            onNavigate={handleNavigate}
+          />
+        )}
+        {currentPage === 'game-selection' && user && (
+          <GameSelection licenseKey={user.licenseKey} />
+        )}
+      </main>
+
+      <Footer />
     </div>
   );
 }
+
+export default App;

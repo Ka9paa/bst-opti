@@ -1,147 +1,114 @@
 import { useState } from 'react';
-import { AlertCircle, Loader2, Lock } from 'lucide-react';
-import Logo from './Logo';
-import keyauth from '../services/keyauth';
+import { Logo } from './Logo';
+import { Lock, User, Key } from 'lucide-react';
 
 interface LoginProps {
-  onLoginSuccess: (username: string, licenseType: string) => void;
+  onLogin: (username: string, licenseKey: string) => void;
 }
 
-export default function Login({ onLoginSuccess }: LoginProps) {
+export function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [licenseKey, setLicenseKey] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
-    try {
-      const response = await keyauth.login(username, password, licenseKey);
+    if (!username || !password || !licenseKey) {
+      setError('All fields are required');
+      return;
+    }
 
-      if (response.success) {
-        const licenseType = keyauth.getLicenseType(licenseKey);
-        onLoginSuccess(username, licenseType);
-      } else {
-        setError(response.message);
-      }
-    } catch (err) {
-      setError('Connection error. Please try again.');
-    } finally {
-      setLoading(false);
+    // Mock validation (in production, this would call your backend)
+    if (licenseKey.startsWith('ELITE-') || 
+        licenseKey.startsWith('FOUNDATION-') || 
+        licenseKey.startsWith('CHECKUP-')) {
+      onLogin(username, licenseKey);
+    } else {
+      setError('Invalid license key format');
     }
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <Logo size="lg" className="mx-auto mb-4" />
-          <h1 className="text-white mb-2">Welcome Back</h1>
-          <p className="text-gray-400">Login to access your optimization tools</p>
+          <div className="flex justify-center mb-4">
+            <Logo className="h-16" />
+          </div>
+          <h2 className="text-white mb-2">Welcome Back</h2>
+          <p className="text-gray-400">Login to access your optimizations</p>
         </div>
 
-        {/* Login Form */}
-        <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800">
+        <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username */}
             <div>
-              <label htmlFor="username" className="block text-sm text-gray-300 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                placeholder="Enter your username"
-                required
-              />
+              <label className="block text-gray-300 mb-2 text-sm">Username</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="Enter username"
+                />
+              </div>
             </div>
 
-            {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm text-gray-300 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                placeholder="Enter your password"
-                required
-              />
+              <label className="block text-gray-300 mb-2 text-sm">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="Enter password"
+                />
+              </div>
             </div>
 
-            {/* License Key */}
             <div>
-              <label htmlFor="licenseKey" className="block text-sm text-gray-300 mb-2">
-                License Key
-              </label>
-              <input
-                type="text"
-                id="licenseKey"
-                value={licenseKey}
-                onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                placeholder="ELITE-XXXX-XXXX-XXXX"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Format: ELITE-XXXX-XXXX or FOUNDATION-XXXX-XXXX
-              </p>
+              <label className="block text-gray-300 mb-2 text-sm">License Key</label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={licenseKey}
+                  onChange={(e) => setLicenseKey(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="ELITE-XXXX-XXXX"
+                />
+              </div>
             </div>
 
-            {/* Error Message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm">
+                {error}
               </div>
             )}
 
-            {/* HWID Warning */}
-            <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 flex items-start gap-3">
-              <Lock className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-blue-400 text-sm">
-                  🔒 HWID Lock Protection Active
-                </p>
-                <p className="text-gray-400 text-xs mt-1">
-                  Your account will be locked to this device. Login from other devices will be blocked for security.
-                </p>
-              </div>
-            </div>
-
-            {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all hover:scale-105 shadow-lg shadow-blue-500/50"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Authenticating...
-                </>
-              ) : (
-                'Login'
-              )}
+              Login
             </button>
           </form>
 
-          {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
-              Don't have a license?{' '}
-              <a href="https://discord.gg/axira" className="text-blue-400 hover:text-blue-300">
+              Don't have an account?{' '}
+              <a
+                href="https://discord.gg/axira"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline"
+              >
                 Purchase on Discord
               </a>
             </p>
